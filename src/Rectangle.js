@@ -18,15 +18,21 @@ const Rectangle = ({shapeProps, onSelect, onChange}) => {
       name="rectangle"
       draggable
       onTransformEnd={(e) => {
+        const node = shapeRef.current;
+        const scaleX = node.scaleX();
+        const scaleY = node.scaleY();
+
+        // we will reset it back
+        node.scaleX(1);
+        node.scaleY(1);
         onChange({
           ...shapeProps,
-          x: shapeRef.current.x(),
-          y: shapeRef.current.y(),
-          width: Math.max(5, shapeRef.current.width()*shapeRef.current.scaleX()),
-          height: Math.max(shapeRef.current.height() * shapeRef.current.scaleY(), 5),
-        })
-        shapeRef.current.scaleX(1);
-        shapeRef.current.scaleY(1);
+          x: node.x(),
+          y: node.y(),
+          // set minimal value
+          width: Math.max(5, node.width() * scaleX),
+          height: node.height() * scaleY
+        });
       }
     }
     />

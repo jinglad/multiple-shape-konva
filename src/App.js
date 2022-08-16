@@ -2,7 +2,6 @@ import "./App.css";
 import { Layer, Rect, Stage, Transformer } from "react-konva";
 import { useEffect, useRef, useState } from "react";
 import Rectangle from "./Rectangle";
-import Konva from "konva";
 import { v4 as uuidv4 } from 'uuid';
 
 const initialRectangle = [
@@ -22,6 +21,14 @@ const initialRectangle = [
     fill: "green",
     id: uuidv4(),
   },
+  {
+    x: 300,
+    y: 300,
+    width: 100,
+    height: 100,
+    fill: "blue",
+    id: uuidv4(),
+  }
 ];
 
 function App() {
@@ -31,6 +38,7 @@ function App() {
   const trRef = useRef(null);
   const [selectedId, selectShape] = useState(null);
   const layerRef = useRef(null);
+  const Konva = window.Konva;
   const selection = useRef({
     visible: false,
     x1: 0,
@@ -38,6 +46,17 @@ function App() {
     x2: 0,
     y2: 0,
   });
+
+  const checkDeselect = (e) => {
+    // deselect when clicked on empty area
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      selectShape(null);
+      trRef.current.nodes([]);
+      setNodes([]);
+      // layerRef.current.remove(selectionRectangle);
+    }
+  };
 
   const updateSelection = () => {
     const node = selectionRect.current;
@@ -82,7 +101,7 @@ function App() {
     }
     const selBox = selectionRect.current.getClientRect();
     const elements = [];
-    console.log({layerRef});
+    // console.log({layerRef});
     layerRef.current.find(".rectangle").forEach((node) => {
       const nodeBox = node.getClientRect();
       if (Konva.Util.haveIntersection(selBox, nodeBox)) {
@@ -90,6 +109,7 @@ function App() {
       }
     });
     trRef.current.nodes(elements);
+    console.log({trRef})
     selection.current.visible = false;
     Konva.listenClickTap = false;
     updateSelection();
@@ -158,7 +178,7 @@ function App() {
       const nodes = tr.nodes().concat([e.target]);
       tr.nodes(nodes);
     }
-    trRef.current.getLayer().batchDraw();
+    layer.batchDraw();
   };
 
   return (
@@ -169,6 +189,7 @@ function App() {
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onClick={onClickTap}
+      onTouchStart={checkDeselect}
     >
       <Layer ref={layerRef}>
         {rectangles.map((rect, i) => (
@@ -191,7 +212,7 @@ function App() {
               const currentIndex = rectangles.findIndex(item => item.id === newAttrs.id);
               copyOfRectangles[currentIndex] = newAttrs;
               setRectangles(copyOfRectangles);
-              console.log({copyOfRectangles});
+              console.log(copyOfRectangles);
             }}
           />
         ))}
