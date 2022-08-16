@@ -3,6 +3,7 @@ import { Layer, Rect, Stage, Transformer } from "react-konva";
 import { useEffect, useRef, useState } from "react";
 import Rectangle from "./Rectangle";
 import Konva from "konva";
+import { v4 as uuidv4 } from 'uuid';
 
 const initialRectangle = [
   {
@@ -11,7 +12,7 @@ const initialRectangle = [
     width: 100,
     height: 100,
     fill: "red",
-    id: "rect1",
+    id: uuidv4(),
   },
   {
     x: 150,
@@ -19,7 +20,7 @@ const initialRectangle = [
     width: 100,
     height: 100,
     fill: "green",
-    id: "rect2",
+    id: uuidv4(),
   },
 ];
 
@@ -81,6 +82,7 @@ function App() {
     }
     const selBox = selectionRect.current.getClientRect();
     const elements = [];
+    console.log({layerRef});
     layerRef.current.find(".rectangle").forEach((node) => {
       const nodeBox = node.getClientRect();
       if (Konva.Util.haveIntersection(selBox, nodeBox)) {
@@ -100,8 +102,6 @@ function App() {
     let stage = e.target.getStage();
     let layer = layerRef.current;
     let tr = trRef.current;
-
-    console.log({tr})
 
     if (e.target === stage) {
       selectShape(null);
@@ -177,19 +177,21 @@ function App() {
             shapeProps={rect}
             isSelected={rect.id === selectedId}
             onSelect={(e) => {
-              if (e.current !== undefined) {
-                let temp = nodesArray;
-                if (!nodesArray.includes(e.current)) temp.push(e.current);
-                setNodes(temp);
-                trRef.current.nodes(nodesArray);
-                trRef.current.getLayer().batchDraw();
-              }
+              // if (e.current !== undefined) {
+              //   let temp = nodesArray;
+              //   if (!nodesArray.includes(e.current)) temp.push(e.current);
+              //   setNodes(temp);
+              //   trRef.current.nodes(nodesArray);
+              //   trRef.current.getLayer().batchDraw();
+              // }
               selectShape(rect.id);
             }}
             onChange={(newAttrs) => {
-              let temp = rectangles;
-              temp[temp.findIndex((rect) => rect.id === selectedId)] = newAttrs;
-              setRectangles(temp);
+              const copyOfRectangles = JSON.parse(JSON.stringify(rectangles));
+              const currentIndex = rectangles.findIndex(item => item.id === newAttrs.id);
+              copyOfRectangles[currentIndex] = newAttrs;
+              setRectangles(copyOfRectangles);
+              console.log({copyOfRectangles});
             }}
           />
         ))}
