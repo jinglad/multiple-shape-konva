@@ -1,8 +1,8 @@
 import "./App.css";
 import { Layer, Rect, Stage, Transformer } from "react-konva";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Rectangle from "./Rectangle";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const initialRectangle = [
   {
@@ -28,7 +28,7 @@ const initialRectangle = [
     height: 100,
     fill: "blue",
     id: uuidv4(),
-  }
+  },
 ];
 
 function App() {
@@ -46,6 +46,10 @@ function App() {
     x2: 0,
     y2: 0,
   });
+
+  // useEffect(() => {
+  //   setRectangles(initialRectangle);
+  // }, []);
 
   const checkDeselect = (e) => {
     // deselect when clicked on empty area
@@ -109,7 +113,7 @@ function App() {
       }
     });
     trRef.current.nodes(elements);
-    console.log({trRef})
+    // console.log({trRef: trRef.current.nodes()});
     selection.current.visible = false;
     Konva.listenClickTap = false;
     updateSelection();
@@ -136,50 +140,46 @@ function App() {
 
     const metaPressed = e.evt.ctrlKey || e.evt.shiftKey;
     // console.log({nodesArray});
-    const isSelected = tr.nodes().indexOf(e.target) >= 0;
+    console.log(e.target)
+    const isSelected = nodesArray?.findIndex(node => node.attrs.id === e.target.attrs.id) >= 0;
+    console.log({isSelected, metaPressed});
+
     // console.log({isSelected})
-    // console.log(tr.nodes().indexOf(e.target));
+    console.log(nodesArray?.findIndex(node => node.attrs.id === e.target.attrs.id));
 
-    // console.log(metaPressed, isSelected);
-
-    // if (!metaPressed && !isSelected) {
-    //   selectShape(e.target.id());
-    //   tr.nodes([e.target]);
-    //   setNodes([e.target]);
-      
-    // } else if (metaPressed && !isSelected) {
-    //   selectShape(e.target.id());
-    //   tr.nodes([...tr.nodes(), e.target]);
-    //   setNodes([...nodesArray, e.target]);
-      
-    // } else if (metaPressed && isSelected) {
-    //   selectShape(null);
-    //   const nodes = tr.nodes();
-    //   console.log(nodes);
-    //   const index = nodes.indexOf(e.target);
-    //   nodes.splice(index, 1);
-    //   setNodes(nodes);
-    //   tr.nodes(nodes);
-    // }
+    console.log(e.target.attrs.id === tr.nodes()[0].attrs.id);
 
     if (!metaPressed && !isSelected) {
       // if no key pressed and the node is not selected
       // select just one
+      console.log("first");
       tr.nodes([e.target]);
-    } else if (metaPressed && isSelected) {
+      setNodes([e.target]);
+    } 
+    else if (metaPressed && isSelected) {
       // if we pressed keys and node was selected
       // we need to remove it from selection:
-      const nodes = tr.nodes().slice(); // use slice to have new copy of array
-      // remove node from array
-      nodes.splice(nodes.indexOf(e.target), 1);
+      console.log("second");
+      const nodes = tr.nodes();
+      nodes.splice(nodes.findIndex(node => node.attrs.id === e.target.attrs.id), 1);
       tr.nodes(nodes);
+      setNodes(nodes);
     } else if (metaPressed && !isSelected) {
       // add the node into selection
-      const nodes = tr.nodes().concat([e.target]);
-      tr.nodes(nodes);
+      console.log("third");
+      let temp = nodesArray;
+      if (!nodesArray.includes(e.target)) temp.push(e.target);
+      setNodes(temp);
+      trRef.current.nodes(nodesArray);
     }
     layer.batchDraw();
   };
+
+  let temp = JSON.parse(JSON.stringify(rectangles));
+
+  useEffect(() => {
+    console.log({rectangles})
+  },[rectangles])
 
   return (
     <Stage
@@ -192,11 +192,13 @@ function App() {
       onTouchStart={checkDeselect}
     >
       <Layer ref={layerRef}>
-        {rectangles.map((rect, i) => (
+        {rectangles?.map((rect, i) => (
           <Rectangle
             key={i}
             shapeProps={rect}
             isSelected={rect.id === selectedId}
+            rectangles={JSON.parse(JSON.stringify(rectangles))}
+            setRectangles={setRectangles}
             onSelect={(e) => {
               // if (e.current !== undefined) {
               //   let temp = nodesArray;
@@ -208,11 +210,26 @@ function App() {
               selectShape(rect.id);
             }}
             onChange={(newAttrs) => {
-              const copyOfRectangles = JSON.parse(JSON.stringify(rectangles));
-              const currentIndex = rectangles.findIndex(item => item.id === newAttrs.id);
-              copyOfRectangles[currentIndex] = newAttrs;
-              setRectangles(copyOfRectangles);
-              console.log(copyOfRectangles);
+              // const copyOfRectangles = JSON.parse(JSON.stringify(temp));
+              const currentIndex = temp.findIndex(
+                (item) => item.id === newAttrs.id
+              );
+              if (trRef.current.nodes().length > 1) {
+                console.log("inside temp")
+                // i++;
+                temp[currentIndex] = newAttrs;
+                // temp = copyOfRectangles;
+                if (temp?.length === i + 1) {
+                  console.log("inside inside temp", temp.length, i)
+                  setRectangles(temp);
+                  // i = 0;
+                  console.log(temp)
+                }
+              } else {
+                console.log("outside temp")
+                temp[currentIndex] = newAttrs;
+                setRectangles(temp);
+              }
             }}
           />
         ))}
