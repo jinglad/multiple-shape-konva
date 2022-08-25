@@ -5,11 +5,12 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import Test from './test';
 import { Test1 } from './test1';
+import TextComp from './text';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <TextComp />
   </React.StrictMode>
 );
 

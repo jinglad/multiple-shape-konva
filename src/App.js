@@ -177,9 +177,9 @@ function App() {
 
   let temp = JSON.parse(JSON.stringify(rectangles));
 
-  useEffect(() => {
-    console.log({rectangles})
-  },[rectangles])
+  // useEffect(() => {
+  //   console.log({rectangles})
+  // },[rectangles])
 
   return (
     <Stage
